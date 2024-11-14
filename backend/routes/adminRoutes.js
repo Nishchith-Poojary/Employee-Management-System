@@ -40,6 +40,15 @@ router.post('/add-category', (req, res) => {
   })
 })
 
+router.post('/add-admin',(req,res)=>{
+  const sql=`INSERT INTO admin (id,email,password) VALUES (?,?,?)`
+  console.log("add-admin",req.body)
+  con.query(sql,[Date.now(),req.body.email,req.body.password],(err,result)=>{
+    if(err) return res.json({status:false,Error:JSON.stringify(err)})
+    return res.json({status:true})
+  })
+})
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.resolve(__dirname, '../public/uploads'))
@@ -92,8 +101,15 @@ router.get('/allcategory', (req, res) => {
   })
 })
 
+
 router.get('/allemployee', (req, res) => {
-  const sql = 'select * from employee'
+  const sql = `
+    SELECT 
+      e.*,
+      (SELECT category_name FROM category c WHERE c.category_id = e.category_id) AS category_name
+    FROM employee e;
+  `
+
   con.query(sql, (err, result) => {
     if (err) {
       return res.json({ status: false, Error: 'query Error' })
@@ -102,48 +118,21 @@ router.get('/allemployee', (req, res) => {
   })
 })
 
-router.get('/employee/:id', (req, res) => {
-  const id = req.params.id
-  const sql = 'select * from employee where employee_id=?'
-  con.query(sql, [id], (err, result) => {
-    if (err) {
-      return res.json({ status: false, Error: err })
-    } else {
-      return res.json({ status: true, result: result })
-    }
-  })
-})
 
-router.put('/edit-employee/:id', (req, res) => {
-  console.log(req.body, req.params.id)
-  const id = req.params.id
-  const sql =
-    'update employee set name=? ,email=?,salary=?,address=?,category_id=? where employee_id=?'
-  console.log('id', id)
-  const newValues = [
-    req.body.name,
-    req.body.email,
-    req.body.salary,
-    req.body.address,
-    req.body.category_id,
-  ]
-  con.query(sql, [...newValues, id], (err, result) => {
-    if (err) return res.json({ status: false, Error: err })
-    return res.json({ status: true, result: result })
-  })
-})
 
-router.delete('/delete-employee/:id', (req, res) => {
-  const id = req.params.id
-  const sql = 'delete from employee where employee_id=?'
-  con.query(sql, [id], (err, result) => {
-    if (err) {
-      return res.json({ status: false, Error: err })
-    } else {
-      return res.json({ status: true, result: result })
-    }
-  })
-})
+// router.delete('/delete-employee/:id', (req, res) => {
+//   const id = req.params.id
+//   const sql = 'delete from employee where employee_id=?'
+//   con.query(sql, [id], (err, result) => {
+  //     if (err) {
+//       return res.json({ status: false, Error: err })
+//     } else {
+//       return res.json({ status: true, result: result })
+//     }
+//   })
+// })
+
+
 
 
 router.get('/admin-count', (req, res) => {
@@ -163,7 +152,6 @@ router.get('/employee-count', (req, res) => {
     if (err) {
       return res.json({ status: false, Error: err })
     } else if (result.length > 0) {
-      // Check if any result is returned
       return res.json({ status: true, result: result })
     } else {
       return res.json({ status: false, Error: 'No employees found' })
@@ -173,12 +161,11 @@ router.get('/employee-count', (req, res) => {
 
 
 router.get('/salary-count', (req, res) => {
-  const sql = 'select sum(salary) as salary from employee' // Correct column name for employee ID
+  const sql = 'select sum(salary) as salary from employee' 
   con.query(sql, (err, result) => {
     if (err) {
       return res.json({ status: false, Error: err })
     } else if (result.length > 0) {
-      // Check if any result is returned
       return res.json({ status: true, result: result })
     } else {
       return res.json({ status: false, Error: 'No employees found' })
@@ -189,11 +176,10 @@ router.get('/salary-count', (req, res) => {
 
 router.get('/admin-records',(req,res)=>{
   const sql="select * from admin"
-    con.query(sql, (err, result) => {
+  con.query(sql, (err, result) => {
       if (err) {
         return res.json({ status: false, Error: err })
       } else if (result.length > 0) {
-        // Check if any result is returned
         return res.json({ status: true, result: result })
       } else {
         return res.json({ status: false, Error: 'No employees found' })
@@ -208,6 +194,71 @@ router.get('/logout',(req,res)=>{
 })
 
 
+router.delete('/delete-employee/:id', (req, res) => {
+  const id = req.params.id
+  const sql = 'CALL delete_employee_by_id(?)'
 
+  con.query(sql, [id], (err, result) => {
+    if (err) {
+      return res.json({ status: false, error: err })
+    } else {
+      if (result.affectedRows === 0) {
+        return res.json({
+          status: false,
+          message: 'No employee found with the given ID',
+        })
+      }
+      return res.json({
+        status: true,
+        message: 'Employee deleted and archived successfully',
+      })
+    }
+  })
+})
+
+
+
+router.put('/edit-employee/:id', (req, res) => {
+  console.log(req.body, req.params.id)
+  const id = req.params.id
+  const sql =
+  'update employee set name=? ,email=?,salary=?,address=?,category_id=? where employee_id=?'
+  console.log('id', id)
+  const newValues = [
+    req.body.name,
+    req.body.email,
+    req.body.salary,
+    req.body.address,
+    req.body.category_id,
+  ]
+  con.query(sql, [...newValues, id], (err, result) => {
+    if (err) return res.json({ status: false, Error: err })
+      return res.json({ status: true, result: result })
+})
+})
+
+router.post('/delete-admin/:id',(req,res)=>{
+  const id=req.params.id;
+  console.log(id);
+  const sql='delete from admin where id=(?)'
+  con.query(sql,[id],(err,result)=>{
+        if (err) {
+          return res.json({ status: false, Error: 'query Error' })
+        }
+        return res.json({ status: true })
+  })
+})
+
+router.get('/employee/:id', (req, res) => {
+  const id = req.params.id
+  const sql = 'select * from employee where employee_id=?'
+  con.query(sql, [id], (err, result) => {
+    if (err) {
+      return res.json({ status: false, Error: err })
+    } else {
+      return res.json({ status: true, result: result })
+    }
+  })
+})
 
 module.exports = router

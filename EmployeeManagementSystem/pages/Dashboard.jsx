@@ -12,7 +12,7 @@ const Dashboard = () => {
     axios.get('http://localhost:4444/auth/logout')
     .then(result=>{
       if(result.data.status){
-        navigate('/adminlogin')
+        navigate('/start')
       }
     })
   }
@@ -26,7 +26,7 @@ const Dashboard = () => {
               to="/dashboard"
               className="d-flex align-items-center pb-3 mb-md-1 mt-md-3 me-md-auto text-white text-decoration-none"
             >
-              CWC
+              EMS
             </Link>
             <ul className="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
               <li className="w-100">
@@ -52,12 +52,12 @@ const Dashboard = () => {
                   <span className="ms-2 d-none d-sm-inline">Category</span>
                 </Link>
               </li>
-              <li className="w-100">
+              {/* <li className="w-100">
                 <Link to="/dashboard/profile" className="nav-link px-0 align-middle text-white">
                   <i class="fa-regular fa-user"></i>
                   <span className="ms-2 d-none d-sm-inline">Profile</span>
                 </Link>
-              </li>
+              </li> */}
               <li className="w-100" onClick={handleLogout}>
                 <Link to="" className="nav-link px-0 align-middle text-white">
                   <i class="fa-solid fa-right-from-bracket"></i>

@@ -14,6 +14,7 @@ import Start from '../pages/Start'
 import EmployeeLogin from '../pages/EmployeeLogin'
 import EmployeeDetail from '../pages/EmployeeDetail'
 import axios from 'axios'
+import AddAdmin from '../pages/AddAdmin'
 
 
 function App() {
@@ -41,8 +42,8 @@ function App() {
             element={<Category></Category>}
           ></Route>
           <Route
-            path="/dashboard/profile"
-            element={<Profile></Profile>}
+            path="/dashboard/add-admin"
+            element={<AddAdmin></AddAdmin>}
           ></Route>
           <Route
             path="/dashboard/add-category"

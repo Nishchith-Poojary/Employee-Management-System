@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [adminTotal,setAdminTotal]=useState(0);
   const [employeeTotal,setEmployeeTotal]=useState(0);
   const [salaryTotal, setSalaryTotal] = useState(0)
   const [admins,setAdmins]=useState([])
+  const [refresh,setRefresh]=useState(false)
 
 
 useEffect(() => {
@@ -14,7 +15,8 @@ useEffect(() => {
   employeeCount() 
   salaryCount()
   adminRecords()
-}, [])
+}, [refresh])
+const navigate=useNavigate()
 
 const adminCount = () => {
   axios
@@ -63,43 +65,60 @@ const adminRecords=()=>{
     .catch((err) => console.log(err)) 
 }
 
+const handleDelete=(id)=>{
+  axios
+    .post(`http://localhost:4444/auth/delete-admin/${id}`)
+    .then((result) => {
+      if (result.data.status) {
+        navigate('/dashboard/')
+        setRefresh(!refresh);
+      } else {
+        alert(result.data.Error)
+      }
+    })
+    .catch((err) => console.log(err))
+}
+
   return (
- <div>
-      <div className='p-3 d-flex justify-content-around mt-3'>
-        <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-          <div className='text-center pb-1'>
+    <div>
+      <Link to="/dashboard/add-admin" className="btn btn-success mt-4">
+        Add Admin
+      </Link>
+      <div className="p-3 d-flex justify-content-around mt-3">
+        <div className="px-3 pt-2 pb-3 border shadow-sm w-25">
+          <div className="text-center pb-1">
             <h4>Admin</h4>
           </div>
           <hr />
-          <div className='d-flex justify-content-between'>
+          <div className="d-flex justify-content-between">
             <h5>Total:{adminTotal}</h5>
             <h5></h5>
           </div>
         </div>
-        <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-          <div className='text-center pb-1'>
+        <div className="px-3 pt-2 pb-3 border shadow-sm w-25">
+          <div className="text-center pb-1">
             <h4>Employee</h4>
           </div>
           <hr />
-          <div className='d-flex justify-content-between'>
+          <div className="d-flex justify-content-between">
             <h5>Total:</h5>
             <h5>{employeeTotal}</h5>
           </div>
         </div>
-        <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-          <div className='text-center pb-1'>
+        <div className="px-3 pt-2 pb-3 border shadow-sm w-25">
+          <div className="text-center pb-1">
             <h4>Salary</h4>
           </div>
           <hr />
-          <div className='d-flex justify-content-between'>
+          <div className="d-flex justify-content-between">
             <h5>Total:</h5>
             <h5>{salaryTotal}</h5>
           </div>
         </div>
       </div>
-      <div className='mt-4 px-5 pt-3'>
+      <div className="mt-4 px-5 pt-3">
         <h3>List of Admins</h3>
-        <table className='table'>
+        <table className="table">
           <thead>
             <tr>
               <th>Email</th>
@@ -107,26 +126,15 @@ const adminRecords=()=>{
             </tr>
           </thead>
           <tbody>
-            {
-              admins.map((a)=>(
-                <tr>
-                  <td>{a.email}</td>
-                  <td>
-                    <button
-                      className="btn btn-info btn-sm me-2"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-warning btn-sm"
-                      
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            }
+            {admins.map((a) => (
+              <tr>
+                <td>{a.email}</td>
+                <td>
+                  {/* <button className="btn btn-info btn-sm me-2">Edit</button> */}
+                  <button className="btn btn-warning btn-sm" onClick={()=>handleDelete(a.id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
